@@ -1,0 +1,135 @@
+# CodeAlpha Internship — Task 1: Web Scraping
+
+## Project overview
+This project demonstrates how to collect a custom dataset from public web pages using Python, Requests, BeautifulSoup, HTML/CSS selectors, pagination, and CSV export.
+
+**Practice website:** [Books to Scrape](https://books.toscrape.com/) — an educational website designed for scraping practice.
+
+## Objectives covered
+- Extract information from web pages with BeautifulSoup.
+- Identify a relevant public dataset and define custom fields.
+- Inspect HTML elements and use CSS selectors.
+- Follow pagination using the “next” link.
+- Handle HTTP failures with timeouts and retries.
+- Optionally visit product detail pages.
+- Clean duplicate product URLs and export a CSV dataset.
+- Produce a summary of the scraping run.
+
+## Dataset fields
+| Field | Description |
+|---|---|
+| `title` | Book title |
+| `price_gbp` | Listed price converted to a number (GBP) |
+| `availability` | Availability text shown on the listing |
+| `rating_out_of_5` | Star rating converted to a number |
+| `category` | Category from product detail page (with `--details`) |
+| `upc` | Product UPC from detail page (with `--details`) |
+| `description` | Product description (with `--details`) |
+| `product_url` | Absolute URL for the product page |
+| `image_url` | Absolute URL for the book cover image |
+| `listing_page_url` | Listing page where the record was found |
+
+When `--details` is not enabled, `category`, `upc`, and `description` remain blank by design.
+
+## Setup (Windows PowerShell)
+1. Install Python 3.10 or newer from [python.org](https://www.python.org/downloads/).
+2. Extract this project ZIP to a folder.
+3. Open PowerShell in that folder.
+4. Create and activate a virtual environment:
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+```
+
+If activation is blocked by policy, you can run the environment's Python directly or use Command Prompt activation:
+`.\.venv\Scripts\activate.bat`
+
+5. Install dependencies:
+
+```powershell
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+## Run the scraper
+Scrape all available listing pages:
+
+```powershell
+python scraper.py
+```
+
+Test with just two listing pages first:
+
+```powershell
+python scraper.py --max-pages 2
+```
+
+Collect product detail fields as well (slower because it visits every product page):
+
+```powershell
+python scraper.py --max-pages 2 --details
+```
+
+After a successful run, check:
+- `output/books_dataset.csv`
+- `output/scraping_summary.txt`
+
+The output folder is created automatically. The CSV is saved as UTF-8 with BOM for convenient opening in Excel.
+
+## How the HTML navigation works
+The scraper uses these selectors on each listing page:
+- `article.product_pod` — each book card
+- `h3 a` — title and product link
+- `.price_color` — displayed price
+- `.availability` — availability text
+- `p.star-rating` — rating class
+- `img` — cover image URL
+- `li.next a` — next page link
+
+`urljoin()` turns relative product/image/next-page links into absolute URLs. The loop stops when no next link is found, a page repeats, or `--max-pages` is reached.
+
+## Validation checklist
+After running:
+1. Open the CSV and check that the header names are present.
+2. Confirm titles and product URLs are not blank.
+3. Check duplicate URLs.
+4. Confirm prices are numeric and ratings are between 1 and 5.
+5. Compare a few CSV rows with their source pages.
+6. Note the date and number of records in your final report.
+7. If the site changes its HTML, inspect the page and update the CSS selectors.
+
+## Troubleshooting
+- **`python` not found:** try `py scraper.py`.
+- **Network / SSL error:** check internet connectivity, system date, and certificate configuration.
+- **CSV contains zero rows:** verify the website is reachable and inspect its current HTML selectors.
+- **HTTP 403/429:** stop repeated requests, respect site policies, and increase `--delay`; do not try to bypass access controls.
+- **Description/category blank:** run with `--details`; this makes additional requests.
+- **PowerShell activation error:** use Command Prompt activation or invoke `.venv\Scripts\python.exe` directly.
+
+## Responsible scraping
+Only scrape pages you are permitted to access. Review the website's terms and `robots.txt`, keep a reasonable request delay, identify your client honestly, and do not bypass login, paywalls, CAPTCHAs, or access controls. This project targets a practice website and is for educational use.
+
+## Suggested GitHub repository
+Name the repository `CodeAlpha_WebScraping`.
+
+Recommended files:
+- `scraper.py`
+- `requirements.txt`
+- `README.md`
+- `.gitignore`
+- `output/books_dataset.csv` (generated after running)
+- `output/scraping_summary.txt` (generated after running)
+
+Do not upload credentials or private data.
+
+## Final deliverables for CodeAlpha
+- [ ] Working Python source code
+- [ ] CSV dataset generated by running the scraper
+- [ ] Summary of number of pages and records collected
+- [ ] Validation of sample rows against source pages
+- [ ] GitHub repository named `CodeAlpha_WebScraping`
+- [ ] Short LinkedIn video explaining the objective, tools, workflow, and results
+- [ ] Submit the task through the official form shared by CodeAlpha
+
+**Important:** The CSV is generated on your computer when you run the scraper; no live scraped results are bundled with this starter project.
